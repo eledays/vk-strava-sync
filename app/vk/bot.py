@@ -27,7 +27,7 @@ class Bot:
             raise ValueError('ID группы VK не указан')
         
         self.session = vk_api.VkApi(token=token)
-        self.vk_api = self.session.get_api()
+        self.vk = self.session.get_api()
         self.longpoll = VkBotLongPoll(
             self.session, 
             group_id=vk_group_id
@@ -45,4 +45,4 @@ class Bot:
 
             msg = cast(dict[str, Any], event.obj.message)
 
-            handle_message(msg)
+            handle_message(self.vk, msg)
