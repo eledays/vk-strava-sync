@@ -1,7 +1,6 @@
 from vk_api.vk_api import VkApiMethod
 
 from app.utils.logging import log_message_handling
-from app.vk.keyboards.navigate import get_navigate_keyboard
 
 from logging import getLogger
 

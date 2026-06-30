@@ -13,7 +13,7 @@ class Config:
 
     PROXY_URL = os.environ.get("PROXY_URL", None)
 
-    BASE_DIR = Path(__file__).parent.resolve()
+    BASE_DIR = Path(__file__).parent.parent.resolve()
     COOKIES_FILE = BASE_DIR / "cookies.json"
 
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
