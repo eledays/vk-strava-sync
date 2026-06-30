@@ -1,6 +1,17 @@
-from strava import StravaUploader
+from app.vk.bot import Bot
+from app.config import Config
+from app.logger import setup_logging
+
+
+def main():
+    setup_logging()
+
+    bot = Bot(
+        Config.VK_TOKEN,
+        Config.VK_GROUP_ID
+    )
+    bot.run()
+
 
 if __name__ == "__main__":
-    uploader = StravaUploader()
-    result = uploader.upload("activity.gpx")
-    print(result)
+    main()

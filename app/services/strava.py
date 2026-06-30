@@ -1,4 +1,4 @@
-from config import Config
+from app.config import Config
 
 import json
 import re
