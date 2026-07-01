@@ -1,14 +1,14 @@
-from vk_api.vk_api import VkApiMethod
-
+from app.vk.bot import Bot
 from app.utils.logging import log_message_handling
 from app.vk.keyboards import get_navigate_keyboard
 
 from logging import getLogger
+import random
 
 logger = getLogger(__name__)
 
 
-def handle_unknown_message(vk, message):
+def handle_unknown_message(bot: Bot, message: dict):
     text = message["text"].lower()
     user_id = message["from_id"]
 
@@ -16,9 +16,8 @@ def handle_unknown_message(vk, message):
 
     keyboard = get_navigate_keyboard()
 
-    vk.messages.send(
+    bot.send_message(
         user_id=user_id,
         message="Привет",
         keyboard=keyboard,
-        random_id=0
     )

@@ -5,6 +5,7 @@ from app.vk.handlers.message import handle_message
 
 from logging import getLogger
 from typing import Any, cast
+import random
 
 logger = getLogger(__name__)
 
@@ -45,4 +46,20 @@ class Bot:
 
             msg = cast(dict[str, Any], event.obj.message)
 
-            handle_message(self.vk, msg)
+            handle_message(self, msg)
+
+    def send_message(
+            self, 
+            user_id: int, 
+            message: str, 
+            keyboard: str | None = None, 
+            **kwargs
+        ):
+        
+        self.vk.messages.send(
+            user_id=user_id,
+            message=message,
+            keyboard=keyboard,
+            random_id=random.getrandbits(16),
+            **kwargs
+        )

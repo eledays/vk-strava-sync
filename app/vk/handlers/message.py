@@ -1,9 +1,9 @@
-from vk_api.vk_api import VkApiMethod
-
+from app.vk.bot import Bot
 from app.vk.handlers.commands import (
     handle_help_message,
     handle_unknown_message,
-    handle_cookie_message
+    handle_cookie_message,
+    handle_current_cookie_message
 )
 
 from logging import getLogger
@@ -11,15 +11,16 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def handle_message(vk: VkApiMethod, message: dict):
-    text = message["text"].lower()
-    lower_text = text.lower().strip()
+def handle_message(bot: Bot, message: dict):
+    text = message["text"].strip()
 
-    if lower_text == 'помощь':
-        handle_help_message(vk, message)
-    elif lower_text == 'куки':
-        handle_cookie_message(vk, message)
-    else:
-        handle_unknown_message(vk, message)
+    handlers = {
+        'помощь': handle_help_message,
+        'куки': handle_cookie_message,
+        'текущие куки': handle_current_cookie_message
+    }
+    
+    handler = handlers.get(text.lower(), handle_unknown_message)
+    handler(bot, message)
 
 

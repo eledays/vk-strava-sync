@@ -1,4 +1,5 @@
 from app.config import Config
+from app.services.cookie import parse_cookies
 
 import json
 import re
@@ -23,10 +24,7 @@ class StravaUploader:
             timeout=60,
         )
 
-        cookies = json.loads(Path(Config.COOKIES_FILE).read_text())
-
-        if isinstance(cookies, dict):
-            cookies = cookies["cookies"]
+        cookies = parse_cookies(Config.COOKIES_FILE)
 
         for cookie in cookies:
             self.client.cookies.set(
