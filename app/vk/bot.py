@@ -38,15 +38,18 @@ class Bot:
         logger.info("Bot started")
 
         for event in self.longpoll.listen():
-            if event.type != VkBotEventType.MESSAGE_NEW:
-                continue
+            try:
+                if event.type != VkBotEventType.MESSAGE_NEW:
+                    continue
 
-            if not event.from_user:  # type: ignore
-                continue
+                if not event.from_user:  # type: ignore
+                    continue
 
-            msg = cast(dict[str, Any], event.obj.message)
+                msg = cast(dict[str, Any], event.obj.message)
 
-            handle_message(self, msg)
+                handle_message(self, msg)
+            except Exception:
+                logger.exception("Unhandled exception in event loop")
 
     def send_message(
             self, 
