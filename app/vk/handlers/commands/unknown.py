@@ -1,4 +1,3 @@
-from app.vk.bot import Bot
 from app.utils.logging import log_message_handling
 from app.vk.keyboards import get_navigate_keyboard
 
@@ -8,7 +7,7 @@ import random
 logger = getLogger(__name__)
 
 
-def handle_unknown_message(bot: Bot, message: dict):
+def handle_unknown_message(bot, message: dict):
     text = message["text"].lower()
     user_id = message["from_id"]
 

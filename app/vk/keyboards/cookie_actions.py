@@ -8,4 +8,7 @@ def get_cookie_actions_keyboard(cookie_file_exists: bool = True) -> str:
     if cookie_file_exists:
         keyboard.add_button("Текущие куки", color=VkKeyboardColor.SECONDARY)
 
+    keyboard.add_line()
+    keyboard.add_button("Главная", color=VkKeyboardColor.SECONDARY)
+
     return keyboard.get_keyboard()
