@@ -1,0 +1,9 @@
+services:
+  app:
+    container_name: vk-strava-sync-app
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+  
