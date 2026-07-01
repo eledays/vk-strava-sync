@@ -4,7 +4,8 @@ from app.vk.keyboards import (
     get_cancel_keyboard
 )
 from app.config import Config
-from app.services.cookie import parse_cookies
+from app.services.cookie import parse_cookies_from_file, parse_cookies_from_string, save_cookies_to_file
+from app.services.strava import StravaClient
 from app.vk.states import UserStateManager, CookieState
 
 import random
@@ -37,7 +38,7 @@ def handle_current_cookie_message(bot, message: dict):
 
     keyboard = get_cookie_actions_keyboard(False)
     
-    cookies = parse_cookies(Config.COOKIES_FILE)
+    cookies = parse_cookies_from_file(Config.COOKIES_FILE)
     if not cookies:
         bot.send_message(
             user_id=user_id,
@@ -79,15 +80,44 @@ def handle_cookie_input(bot, message: dict):
     user_id = message["from_id"]
 
     log_message_handling(logger, __name__, user_id, text)
+    UserStateManager.clear(user_id)
 
     if text == "отмена":
-        UserStateManager.clear(user_id)
         bot.send_message(
             user_id=user_id,
             message="Отменено",
             keyboard=get_cookie_actions_keyboard(False)
         )
         return
+    
+    cookies = parse_cookies_from_string(text)
 
-    print(text)
-    UserStateManager.clear(user_id)
+    if not cookies:
+        cookie_file_exists = Config.COOKIES_FILE.exists()
+        bot.send_message(
+            user_id=user_id,
+            message="Неверный формат cookie",
+            keyboard=get_cookie_actions_keyboard(cookie_file_exists)
+        )
+        return
+
+    bot.send_message(
+        user_id=user_id,
+        message="Пара секунд, провожу проверку cookie\n✅ Синтаксис в порядке\nПроверяю доступность strava"
+    )
+
+    client = StravaClient(cookies)
+    result = client.check_cookies()
+    if result:
+        bot.send_message(
+            user_id=user_id,
+            message="✅ Strava доступна",
+            keyboard=get_cookie_actions_keyboard(True)
+        )
+        save_cookies_to_file(cookies, Config.COOKIES_FILE)
+    else:
+        bot.send_message(
+            user_id=user_id,
+            message="🚫 Strava недоступна. Возможно, что-то не так с cookies",
+            keyboard=get_cookie_actions_keyboard(False)
+        )

@@ -1,5 +1,5 @@
 from app.config import Config
-from app.services.cookie import parse_cookies
+from app.services.cookie import parse_cookies_from_file
 
 import json
 import re
@@ -8,8 +8,8 @@ from pathlib import Path
 import httpx
 
 
-class StravaUploader:
-    def __init__(self):
+class StravaClient:
+    def __init__(self, cookies: list[dict]):
         self.client = httpx.Client(
             proxy=Config.PROXY_URL,
             headers={
@@ -23,9 +23,7 @@ class StravaUploader:
             follow_redirects=True,
             timeout=60,
         )
-
-        cookies = parse_cookies(Config.COOKIES_FILE)
-
+        
         for cookie in cookies:
             self.client.cookies.set(
                 name=cookie["name"],
@@ -33,6 +31,10 @@ class StravaUploader:
                 domain=cookie["domain"],
                 path=cookie["path"],
             )
+
+    def check_cookies(self) -> bool:
+        r = self.client.get(f"{Config.STRAVA_BASE_URL}/upload/select")
+        return r.status_code == 200
 
     def _csrf(self) -> str:
         r = self.client.get(f"{Config.STRAVA_BASE_URL}/upload/select")
