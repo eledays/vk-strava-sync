@@ -16,5 +16,8 @@ class Config:
     BASE_DIR = Path(__file__).parent.parent.resolve()
     COOKIES_FILE = BASE_DIR / "cookies.json"
 
+    DB_URL = os.getenv("DB_URL", f"sqlite:///{BASE_DIR / 'data' / 'app.db'}")
+    DB_ECHO = os.getenv("DB_ECHO", "false").lower() == "true"
+
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
     LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
