@@ -7,4 +7,8 @@ def get_navigate_keyboard() -> str:
     keyboard.add_button("Статус", color=VkKeyboardColor.PRIMARY)
     keyboard.add_button("Куки", color=VkKeyboardColor.PRIMARY)
 
+    keyboard.add_line()
+
+    keyboard.add_button("Начало работы", color=VkKeyboardColor.SECONDARY)
+
     return keyboard.get_keyboard()

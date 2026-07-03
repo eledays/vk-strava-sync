@@ -11,6 +11,6 @@ def log_message_handling(logger: Logger, name: str, user_id: str | int, text: st
     :param text: Текст сообщения (будет обрезан до 20 символов)
     """
     logger.info(
-        f'Сообщение обработано ({name.split(".")[-1]}) от {user_id}: '
-        f'{text[:20]}{"..." if len(text) > 20 else ""}'
+        f'Message handled ({name.split(".")[-1]}) from {user_id}: '
+        f'{text[:20].replace("\n", " ")}{"..." if len(text) > 20 else ""}'
     )

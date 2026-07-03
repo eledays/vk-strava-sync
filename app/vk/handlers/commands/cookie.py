@@ -47,7 +47,7 @@ def handle_current_cookie_message(bot, message: dict):
     if not cookies:
         bot.send_message(
             user_id=user_id,
-            message='Кук нет. Можно установить',
+            message='Куки не установлены',
             keyboard=keyboard
         ) 
         return
@@ -73,7 +73,12 @@ def handle_set_cookie_message(bot, message: dict):
 
     bot.send_message(
         user_id=user_id,
-        message='Скопируй JSON-cookies с помощью Cookie-Editor с strava.com после успешной авторизации и отправь текстом',
+        message=(
+            "1. Зарегистрируйся или войди в аккаунт на Strava: strava.com\n\n"
+            "2. Установи в браузер расширение Cookie Editor: cookie-editor.com\n\n"
+            "3. Скопируй JSON-cookies со strava.com с помощью Cookie Editor\n\n"
+            "4. Отправь сюда"
+        ),
         keyboard=keyboard
     )
 
@@ -107,7 +112,7 @@ def handle_cookie_input(bot, message: dict):
 
     bot.send_message(
         user_id=user_id,
-        message="Пара секунд, провожу проверку cookie\n✅ Синтаксис в порядке\nПроверяю доступность strava"
+        message="Проверяю куки. Это может занять некоторое время\n\n✅ Синтаксис в порядке\nПроверяю доступность strava"
     )
 
     user = get_or_create_user_by_vk_id(user_id)

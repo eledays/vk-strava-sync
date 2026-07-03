@@ -5,7 +5,8 @@ from app.vk.handlers.commands import (
     handle_current_cookie_message,
     handle_set_cookie_message,
     handle_cookie_input,
-    handle_status_message
+    handle_status_message,
+    handle_start_message
 )
 from app.vk.states import UserStateManager, CookieState
 
@@ -31,6 +32,8 @@ def handle_message(bot, message: dict):
         'текущие куки': handle_current_cookie_message,
         'установить куки': handle_set_cookie_message,
         'статус': handle_status_message,
+        'начать': handle_start_message,
+        'начало работы': handle_start_message
     }
     
     handler = handlers.get(text.lower(), handle_unknown_message)
