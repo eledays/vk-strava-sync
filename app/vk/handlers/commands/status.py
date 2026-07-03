@@ -23,12 +23,12 @@ def handle_status_message(bot, message: dict):
     if is_available:
         bot.send_message(
             user_id=user_id,
-            message="✅ Strava доступен",
+            message="✅ Strava доступна",
         )
     else:
         bot.send_message(
             user_id=user_id,
-            message=f"🚫 Strava недоступен: {error}",
+            message=f"🚫 Strava недоступна: {error}",
         )
 
 

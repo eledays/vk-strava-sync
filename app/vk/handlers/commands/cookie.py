@@ -110,9 +110,9 @@ def handle_cookie_input(bot, message: dict):
         )
         return
 
-    bot.send_message(
+    sent_msg_id = bot.send_message(
         user_id=user_id,
-        message="Проверяю куки. Это может занять некоторое время\n\n✅ Синтаксис в порядке\nПроверяю доступность strava"
+        message="Проверяю куки. Это может занять некоторое время\n\n✅ Синтаксис в порядке\nПроверяю доступность Strava..."
     )
 
     user = get_or_create_user_by_vk_id(user_id)
@@ -120,15 +120,23 @@ def handle_cookie_input(bot, message: dict):
     client = StravaClient(cookies)
     result, error_message = client.check_cookies()
     if result:
+        bot.delete_message(
+            peer_id=message["peer_id"],
+            message_id=sent_msg_id,
+        )
         bot.send_message(
             user_id=user_id,
-            message="✅ Strava доступна",
+            message="Проверил куки\n\n✅ Синтаксис в порядке\n✅ Strava доступна",
             keyboard=get_cookie_actions_keyboard(True)
         )
         save_strava_cookies(user.id, json.dumps(cookies))
     else:
+        bot.delete_message(
+            peer_id=message["peer_id"],
+            message_id=sent_msg_id,
+        )
         bot.send_message(
             user_id=user_id,
-            message=f"🚫 Strava недоступна. Cookie не сохранены. Ошибка: {error_message}",
+            message=f"Проверил куки\n\n✅ Синтаксис в порядке\n🚫 Strava недоступна: {error_message}",
             keyboard=get_cookie_actions_keyboard(False)
         )

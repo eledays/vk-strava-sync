@@ -85,15 +85,16 @@ class StravaClient:
             return False, "Таймаут"
         except httpx.HTTPError as e:
             logger.exception("Error while checking cookies")
-            return False, f"Ошибка запроса: {e}"
+            return False, f"{e}"
         except Exception:
             logger.exception("Error while checking cookies")
             return False, "Неизвестная ошибка"
         
         if response.status_code != 200:
-            logger.info("Successfully checked cookies")
-            return False, f"Strava ответил с кодом {response.status_code}"
+            logger.error("Error while checking cookies, status code: %s", response.status_code)
+            return False, f"код {response.status_code}"
         
+        logger.info("Successfully checked cookies")
         return True, None
     
     def check_access(self) -> Tuple[bool, str | None]:
@@ -110,13 +111,13 @@ class StravaClient:
             return False, "Таймаут"
         except httpx.HTTPError as e:
             logger.exception("Error while checking access to strava")
-            return False, f"Ошибка запроса: {e}"
+            return False, f"{e}"
         except Exception:
             logger.exception("Error while checking access to strava")
             return False, "Неизвестная ошибка"
         
         if response.status_code != 200:
-            return False, f"Strava ответил с кодом {response.status_code}"
+            return False, f"код {response.status_code}"
         
         return True, None
 

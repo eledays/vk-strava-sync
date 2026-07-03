@@ -52,17 +52,67 @@ class Bot:
                 logger.exception("Unhandled exception in event loop")
 
     def send_message(
-            self, 
-            user_id: int, 
-            message: str, 
-            keyboard: str | None = None, 
+            self,
+            user_id: int,
+            message: str,
+            keyboard: str | None = None,
             **kwargs
         ):
+        """
+        Отправка сообщения пользователю.
+
+        :param user_id: ID пользователя
+        :param message: Текст сообщения
+        :param keyboard: Клавиатура
+        """
         
-        self.vk.messages.send(
+        return self.vk.messages.send(
             user_id=user_id,
             message=message,
             keyboard=keyboard,
             random_id=random.getrandbits(16),
             **kwargs
+        )
+
+    def edit_message(
+            self,
+            peer_id: int,
+            message_id: int,
+            message: str,
+            keyboard: str | None = None,
+            **kwargs
+        ):
+        """
+        Редактирует отправленное сообщение.
+
+        :param peer_id: ID диалога
+        :param message_id: ID сообщения
+        :param message: Новый текст сообщения
+        :param keyboard: Новая клавиатура 
+        """
+        self.vk.messages.edit(
+            peer_id=peer_id,
+            message_id=message_id,
+            message=message,
+            keyboard=keyboard,
+            **kwargs
+        )
+
+    def delete_message(
+            self,
+            message_id: int,
+            peer_id: int,
+            delete_for_all: bool = True
+        ):
+        """
+        Удаляет сообщение по его ID.
+
+        :param message_id: ID сообщения
+        :param peer_id: ID диалога
+        :param delete_for_all: True — удалить для всех, False — только для себя
+        """
+        self.vk.messages.delete(
+            message_ids=message_id,
+            peer_id=peer_id,
+            delete_for_all=1 if delete_for_all else 0,
         )
