@@ -1,10 +1,12 @@
 from app.config import Config
 from app.services.cookie import parse_cookies_from_file
 
+import http.cookiejar
 import json
 import re
 from pathlib import Path
 from logging import getLogger
+from typing import Tuple
 
 import httpx
 
@@ -12,7 +14,7 @@ logger = getLogger(__name__)
 
 
 class StravaClient:
-    def __init__(self, cookies: list[dict]):
+    def __init__(self, cookies: list[dict] | None = None):
         self.client = httpx.Client(
             proxy=Config.PROXY_URL,
             headers={
@@ -27,21 +29,102 @@ class StravaClient:
             timeout=60,
         )
 
-        for cookie in cookies:
-            name = cookie.get("name", "")
-            value = cookie.get("value", "")
-            domain = cookie.get("domain", "")
-            path = cookie.get("path", "")
-            if not all([name, value, domain]):
-                logger.warning("Skipping invalid cookie entry: %s", cookie)
-                continue
-            self.client.cookies.set(name=name, value=value, domain=domain, path=path)
+        if cookies is not None:
+            for cookie in cookies:
+                name = cookie.get("name", "")
+                value = cookie.get("value", "")
+                domain = cookie.get("domain", "")
+                path = cookie.get("path", "/")
 
-    def check_cookies(self) -> bool:
-        r = self.client.get(f"{Config.STRAVA_BASE_URL}/upload/select")
-        return r.status_code == 200
+                if not name or domain is None:
+                    logger.warning("Invalid cookie entry: %s", cookie)
+                    continue
+
+                expires = None
+                if cookie.get("expirationDate"):
+                    expires = int(cookie["expirationDate"])
+
+                c = http.cookiejar.Cookie(
+                    version=0,
+                    name=name,
+                    value=value,
+                    port=None,
+                    port_specified=False,
+                    domain=domain,
+                    domain_specified=bool(domain),
+                    domain_initial_dot=domain.startswith("."),
+                    path=path,
+                    path_specified=True,
+                    secure=cookie.get("secure", False),
+                    expires=expires,
+                    discard=expires is None,
+                    comment=None,
+                    comment_url=None,
+                    rest={"HttpOnly": cookie.get("httpOnly", False)},
+                    rfc2109=False,
+                )
+
+                self.client.cookies.jar.set_cookie(c)
+
+    def check_cookies(self) -> Tuple[bool, str | None]:
+        """
+        Проверка cookies запросом strava
+
+        :return: True/False - валидность cookies, сообщение об ошибке
+        """
+        url = f"{Config.STRAVA_BASE_URL}/upload/select"
+
+        if Config.SKIP_STRAVA_REQUESTS:
+            logger.warning("Skipping Strava requests")
+            return True, None
+
+        try:
+            response = self.client.get(url, timeout=30)
+        except httpx.TimeoutException:
+            logger.exception("Error while checking cookies")
+            return False, "Таймаут"
+        except httpx.HTTPError as e:
+            logger.exception("Error while checking cookies")
+            return False, f"Ошибка запроса: {e}"
+        except Exception:
+            logger.exception("Error while checking cookies")
+            return False, "Неизвестная ошибка"
+        
+        if response.status_code != 200:
+            logger.info("Successfully checked cookies")
+            return False, f"Strava ответил с кодом {response.status_code}"
+        
+        return True, None
+    
+    def check_access(self) -> Tuple[bool, str | None]:
+        url = Config.STRAVA_BASE_URL
+
+        if Config.SKIP_STRAVA_REQUESTS:
+            logger.warning("Skipping Strava requests")
+            return True, None
+
+        try:
+            response = self.client.get(url, timeout=30)
+        except httpx.TimeoutException:
+            logger.exception("Error while checking access to strava")
+            return False, "Таймаут"
+        except httpx.HTTPError as e:
+            logger.exception("Error while checking access to strava")
+            return False, f"Ошибка запроса: {e}"
+        except Exception:
+            logger.exception("Error while checking access to strava")
+            return False, "Неизвестная ошибка"
+        
+        if response.status_code != 200:
+            return False, f"Strava ответил с кодом {response.status_code}"
+        
+        return True, None
 
     def _csrf(self) -> str:
+        if Config.SKIP_STRAVA_REQUESTS:
+            logger.warning("Skipping Strava requests")
+            return ""
+        
         resp = self.client.get(f"{Config.STRAVA_BASE_URL}/upload/select")
         resp.raise_for_status()
 
@@ -57,6 +140,10 @@ class StravaClient:
 
     def upload(self, gpx_path: str):
         token = self._csrf()
+
+        if Config.SKIP_STRAVA_REQUESTS:
+            logger.warning("Skipping Strava requests")
+            return {}
 
         with open(gpx_path, "rb") as file:
             files = {

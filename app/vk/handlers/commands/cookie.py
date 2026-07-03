@@ -4,12 +4,16 @@ from app.vk.keyboards import (
     get_cancel_keyboard
 )
 from app.config import Config
-from app.services.cookie import parse_cookies_from_file, parse_cookies_from_string, save_cookies_to_file
+from app.services.cookie import parse_cookies_from_string
 from app.services.strava import StravaClient
+from app.services.users import (
+    get_or_create_user_by_vk_id,
+    save_strava_cookies
+)
 from app.vk.states import UserStateManager, CookieState
 
-import random
 from logging import getLogger
+import json
 
 logger = getLogger(__name__)
 
@@ -20,8 +24,7 @@ def handle_cookie_message(bot, message: dict):
 
     log_message_handling(logger, __name__, user_id, text)
 
-    cookie_file_exists = Config.COOKIES_FILE.exists()
-    keyboard = get_cookie_actions_keyboard(cookie_file_exists)
+    keyboard = get_cookie_actions_keyboard()
 
     bot.send_message(
         user_id=user_id,
@@ -37,8 +40,10 @@ def handle_current_cookie_message(bot, message: dict):
     log_message_handling(logger, __name__, user_id, text)
 
     keyboard = get_cookie_actions_keyboard(False)
+
+    user = get_or_create_user_by_vk_id(user_id)
+    cookies = parse_cookies_from_string(user.strava_cookies)
     
-    cookies = parse_cookies_from_file(Config.COOKIES_FILE)
     if not cookies:
         bot.send_message(
             user_id=user_id,
@@ -93,11 +98,10 @@ def handle_cookie_input(bot, message: dict):
     cookies = parse_cookies_from_string(text)
 
     if not cookies:
-        cookie_file_exists = Config.COOKIES_FILE.exists()
         bot.send_message(
             user_id=user_id,
             message="Неверный формат cookie",
-            keyboard=get_cookie_actions_keyboard(cookie_file_exists)
+            keyboard=get_cookie_actions_keyboard()
         )
         return
 
@@ -106,18 +110,20 @@ def handle_cookie_input(bot, message: dict):
         message="Пара секунд, провожу проверку cookie\n✅ Синтаксис в порядке\nПроверяю доступность strava"
     )
 
+    user = get_or_create_user_by_vk_id(user_id)
+
     client = StravaClient(cookies)
-    result = client.check_cookies()
+    result, error_message = client.check_cookies()
     if result:
         bot.send_message(
             user_id=user_id,
             message="✅ Strava доступна",
             keyboard=get_cookie_actions_keyboard(True)
         )
-        save_cookies_to_file(cookies, Config.COOKIES_FILE)
+        save_strava_cookies(user.id, json.dumps(cookies))
     else:
         bot.send_message(
             user_id=user_id,
-            message="🚫 Strava недоступна. Возможно, что-то не так с cookies",
+            message=f"🚫 Strava недоступна. Cookie не сохранены. Ошибка: {error_message}",
             keyboard=get_cookie_actions_keyboard(False)
         )

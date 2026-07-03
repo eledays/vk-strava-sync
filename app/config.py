@@ -8,8 +8,11 @@ load_dotenv()
 class Config:
     VK_TOKEN = os.environ["VK_TOKEN"]
     VK_GROUP_ID = int(os.environ["VK_GROUP_ID"])
+
     STRAVA_BASE_URL = os.environ.get(
         "STRAVA_BASE_URL", "https://www.strava.com")
+    SKIP_STRAVA_REQUESTS = os.environ.get(
+        "SKIP_STRAVA_REQUESTS", "false").lower() == "true"
 
     PROXY_URL = os.environ.get("PROXY_URL", None)
 

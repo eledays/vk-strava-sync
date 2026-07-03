@@ -17,3 +17,13 @@ def get_or_create_user_by_vk_id(vk_id: int) -> User:
         else:
             logger.info(f"Found existing user: {user}")
         return user
+
+
+def save_strava_cookies(user_id: int, cookies: str) -> None:
+    with get_session() as session:
+        user = session.get(User, user_id)
+        if user is None:
+            raise ValueError(f"User {user_id} not found")
+
+        user.strava_cookies = cookies
+        session.commit()
