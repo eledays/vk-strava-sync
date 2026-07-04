@@ -16,6 +16,17 @@ logger = getLogger(__name__)
 
 
 def handle_message(bot, message: dict):
+    attachments = message.get("attachments", [])
+
+    if any(attachment["type"] == "doc" for attachment in attachments):
+        handle_document_message(bot, message)
+    elif message.get("text"):
+        handle_text_message(bot, message)
+    else:
+        logger.warning("Received message with no text or document attachment")
+
+
+def handle_text_message(bot, message: dict):
     text = message["text"].strip()
     user_id = message["from_id"]
 
@@ -25,7 +36,7 @@ def handle_message(bot, message: dict):
     if state == CookieState.AWAITING_COOKIES:
         handle_cookie_input(bot, message)
         return
-    
+
     handlers = {
         'помощь': handle_help_message,
         'куки': handle_cookie_message,
@@ -35,8 +46,32 @@ def handle_message(bot, message: dict):
         'начать': handle_start_message,
         'начало работы': handle_start_message
     }
-    
+
     handler = handlers.get(text.lower(), handle_unknown_message)
     handler(bot, message)
 
 
+def handle_document_message(bot, message: dict):
+    docs = [attachment["doc"] for attachment in message.get(
+        "attachments", []) if attachment["type"] == "doc"]
+
+    if len(docs) > 1:
+        bot.send_message(
+            user_id=message["from_id"],
+            message="Получил несколько файлов, смогу обработать только первый"
+        )
+
+    doc = docs[0]
+    name: str = doc["title"]
+    file_extension = name.split(".")[-1].lower()
+
+    if file_extension == "fit":
+        bot.send_message(
+            user_id=message["from_id"],
+            message="О, это .fit файл, я такой знаю"
+        )
+    else:
+        bot.send_message(
+            user_id=message["from_id"],
+            message="С такими файлами я работать не умею. Пришли .fit"
+        )
