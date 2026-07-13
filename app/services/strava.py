@@ -139,19 +139,30 @@ class StravaClient:
 
         return m.group(1)
 
-    def upload(self, gpx_path: str):
+    def upload(self, file_path: str):
+        """
+        Загрузка файла активности в Strava.
+
+        Поддерживает .gpx (application/gpx+xml) и .fit (application/octet-stream).
+
+        :param file_path: Путь к файлу для загрузки
+        :return: JSON-ответ от Strava
+        """
         token = self._csrf()
 
         if Config.SKIP_STRAVA_REQUESTS:
             logger.warning("Skipping Strava requests")
             return {}
 
-        with open(gpx_path, "rb") as file:
+        ext = Path(file_path).suffix.lower()
+        mime_type = "application/gpx+xml" if ext == ".gpx" else "application/octet-stream"
+
+        with open(file_path, "rb") as file:
             files = {
                 "files[]": (
-                    Path(gpx_path).name,
+                    Path(file_path).name,
                     file,
-                    "application/gpx+xml",
+                    mime_type,
                 )
             }
 

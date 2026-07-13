@@ -6,7 +6,10 @@ from app.vk.handlers.commands import (
     handle_set_cookie_message,
     handle_cookie_input,
     handle_status_message,
-    handle_start_message
+    handle_start_message,
+)
+from app.vk.handlers.docs import (
+    handle_fit_file
 )
 from app.vk.states import UserStateManager, CookieState
 
@@ -52,13 +55,19 @@ def handle_text_message(bot, message: dict):
 
 
 def handle_document_message(bot, message: dict):
-    docs = [attachment["doc"] for attachment in message.get(
-        "attachments", []) if attachment["type"] == "doc"]
+    docs = [
+        attachment["doc"]
+        for attachment in message.get("attachments", [])
+        if attachment["type"] == "doc"
+    ]
+
+    if not docs:
+        return
 
     if len(docs) > 1:
         bot.send_message(
             user_id=message["from_id"],
-            message="Получил несколько файлов, смогу обработать только первый"
+            message="Получил несколько файлов, смогу обработать только первый",
         )
 
     doc = docs[0]
@@ -66,12 +75,9 @@ def handle_document_message(bot, message: dict):
     file_extension = name.split(".")[-1].lower()
 
     if file_extension == "fit":
-        bot.send_message(
-            user_id=message["from_id"],
-            message="О, это .fit файл, я такой знаю"
-        )
+        handle_fit_file(bot, message, doc)
     else:
         bot.send_message(
             user_id=message["from_id"],
-            message="С такими файлами я работать не умею. Пришли .fit"
-        )
+            message="С такими файлами я работать не умею. Пришли .fit",
+        )    
