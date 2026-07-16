@@ -6,3 +6,10 @@ __pycache__/
 *.pyc
 cookies.json
 *.db
+.gradle/
+.idea/
+local.properties
+**/build/
+*.iml
+captures/
+.github

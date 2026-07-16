@@ -6,3 +6,5 @@ __pycache__/
 *.pyc
 cookies.json
 *.db
+android-app/
+.github
